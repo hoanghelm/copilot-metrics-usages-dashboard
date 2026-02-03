@@ -45,3 +45,6 @@ vite.config.js
 
 # Claude
 .claude/
+
+# Reference screenshots
+expects/
