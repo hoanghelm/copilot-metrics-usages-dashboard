@@ -181,6 +181,13 @@ export function useSummary(
         totalSuggestions: 0,
         totalAcceptances: 0,
         totalChats: 0,
+        ideActiveUsers: 0,
+        agentAdoptionPercentage: 0,
+        agentActiveUsers: 0,
+        mostUsedChatModel: 'Claude Sonnet 4.5',
+        totalLinesChanged: 0,
+        agentContributionPercentage: 0,
+        averageLinesDeletedByAgent: 0,
       };
     }
     return calculateSummary(metrics, seats || null);

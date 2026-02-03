@@ -3,7 +3,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { CopilotUsagePage } from '@/pages/copilot-usage';
-import { CodeCompletionPage } from '@/pages/code-completion';
+import { CodeGenerationPage } from '@/pages/code-generation';
+import { TeamsPage } from '@/pages/teams';
+import { SeatsPage } from '@/pages/seats';
+import { DomainEventsPage } from '@/pages/settings/domain-events';
+import { ConfigurationsPage } from '@/pages/settings/configurations';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,7 +21,7 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider colorMode="auto">
+      <ThemeProvider colorMode="night">
         <BaseStyles>
           <BrowserRouter>
             <Routes>
@@ -25,7 +29,13 @@ function App() {
                 <Route index element={<Navigate to="/insights/copilot-usage" replace />} />
                 <Route path="insights">
                   <Route path="copilot-usage" element={<CopilotUsagePage />} />
-                  <Route path="code-completion" element={<CodeCompletionPage />} />
+                  <Route path="code-generation" element={<CodeGenerationPage />} />
+                  <Route path="teams" element={<TeamsPage />} />
+                  <Route path="seats" element={<SeatsPage />} />
+                </Route>
+                <Route path="settings">
+                  <Route path="domain-events" element={<DomainEventsPage />} />
+                  <Route path="configurations" element={<ConfigurationsPage />} />
                 </Route>
               </Route>
             </Routes>

@@ -6,10 +6,10 @@ import {
   ChatChart,
   LanguageChart,
   EditorChart,
+  AcceptanceRateChart,
 } from '@/components/charts';
 import {
   TimeRangeFilter,
-  TimeFrameToggle,
   DateRangePicker,
 } from '@/components/filters';
 import { useInsights } from '@/pages/insights/useHooks';
@@ -21,8 +21,8 @@ export function CopilotUsagePage() {
     filter,
     dateRange,
     setTimeRange,
-    setTimeFrame,
     setCustomDateRange,
+    metricsQuery,
     processedMetrics,
     languageBreakdown,
     editorBreakdown,
@@ -49,7 +49,7 @@ export function CopilotUsagePage() {
   };
 
   return (
-    <Box sx={{ p: 4, maxWidth: 1280, mx: 'auto' }}>
+    <Box sx={{ p: 4, maxWidth: 1400, mx: 'auto' }}>
       {/* Header Section */}
       <Box
         sx={{
@@ -94,19 +94,23 @@ export function CopilotUsagePage() {
           {/* Metrics Overview Cards */}
           <MetricsOverview summary={summary} />
 
-          {/* Time Frame Toggle */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <TimeFrameToggle
-              value={filter.timeFrame}
-              onChange={setTimeFrame}
-            />
-          </Box>
-
-          {/* Active Users Chart */}
+          {/* Active Users Charts (Daily & Weekly) */}
           <ActiveUsersChart data={processedMetrics} />
 
-          {/* Chat Chart */}
-          <ChatChart data={processedMetrics} />
+          {/* Chat Charts (Average per user & Requests by mode) */}
+          {metricsQuery.data && <ChatChart data={metricsQuery.data} />}
+
+          {/* Code Completions Charts */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: ['1fr', '1fr', 'repeat(2, 1fr)'],
+              gap: 4,
+            }}
+          >
+            <AcceptanceRateChart data={processedMetrics} title="Code completions" subtitle="Inline code suggestions shown and accepted" showLines />
+            <AcceptanceRateChart data={processedMetrics} title="Code completions acceptance rate" subtitle="Percentage of shown inline completions that were either fully or partially accepted" />
+          </Box>
 
           {/* Language and Editor Breakdown */}
           <Box

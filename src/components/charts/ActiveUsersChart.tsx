@@ -7,7 +7,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 import { ProcessedMetrics } from '@/pages/insights/types';
 
@@ -16,28 +15,40 @@ interface ActiveUsersChartProps {
 }
 
 export function ActiveUsersChart({ data }: ActiveUsersChartProps) {
-  const chartData = data.map((item) => ({
+  const dailyChartData = data.map((item) => ({
     name: item.displayDate,
-    'Code completion': item.totalEngagedUsers,
-    'Chat': item.totalChatEngagedUsers,
+    users: item.totalActiveUsers,
   }));
 
-  // Calculate total engaged users for the header
-  const totalEngaged = data.reduce((sum, item) => sum + item.totalEngagedUsers + item.totalChatEngagedUsers, 0);
-  const avgEngaged = data.length > 0 ? Math.round(totalEngaged / data.length) : 0;
+  // Group data by week for weekly chart
+  const weeklyChartData = data.reduce((acc: { name: string; users: number }[], item, index) => {
+    const weekIndex = Math.floor(index / 7);
+    if (!acc[weekIndex]) {
+      acc[weekIndex] = { name: item.displayDate, users: 0 };
+    }
+    acc[weekIndex].users = Math.max(acc[weekIndex].users, item.totalActiveUsers);
+    return acc;
+  }, []);
 
   return (
     <Box
       sx={{
-        p: 4,
-        bg: 'canvas.default',
-        borderRadius: 2,
-        border: '1px solid',
-        borderColor: 'border.default',
+        display: 'grid',
+        gridTemplateColumns: ['1fr', '1fr', 'repeat(2, 1fr)'],
+        gap: 4,
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-        <Box>
+      {/* IDE Daily Active Users */}
+      <Box
+        sx={{
+          p: 4,
+          bg: 'canvas.subtle',
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'border.default',
+        }}
+      >
+        <Box sx={{ mb: 3 }}>
           <Text
             sx={{
               fontSize: 1,
@@ -46,7 +57,7 @@ export function ActiveUsersChart({ data }: ActiveUsersChartProps) {
               display: 'block',
             }}
           >
-            Engaged users
+            IDE daily active users
           </Text>
           <Text
             sx={{
@@ -55,19 +66,75 @@ export function ActiveUsersChart({ data }: ActiveUsersChartProps) {
               display: 'block',
             }}
           >
-            Users who used code completion or chat
+            Unique users who used Copilot on a given day, either via chat or code completions
           </Text>
         </Box>
-        <Box sx={{ textAlign: 'right' }}>
+        <Box sx={{ height: 200 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={dailyChartData}>
+              <defs>
+                <linearGradient id="colorDailyUsers" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#58a6ff" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="#58a6ff" stopOpacity={0.05}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#30363d" vertical={false} />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 10, fill: '#8b949e' }}
+                axisLine={{ stroke: '#30363d' }}
+                tickLine={false}
+                interval="preserveStartEnd"
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: '#8b949e' }}
+                axisLine={false}
+                tickLine={false}
+                label={{ value: 'Users', angle: -90, position: 'insideLeft', fontSize: 10, fill: '#8b949e' }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#161b22',
+                  border: '1px solid #30363d',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  color: '#c9d1d9',
+                }}
+                labelStyle={{ color: '#c9d1d9' }}
+              />
+              <Area
+                type="monotone"
+                dataKey="users"
+                stroke="#58a6ff"
+                strokeWidth={2}
+                fill="url(#colorDailyUsers)"
+                name="Daily active users"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Box>
+      </Box>
+
+      {/* IDE Weekly Active Users */}
+      <Box
+        sx={{
+          p: 4,
+          bg: 'canvas.subtle',
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'border.default',
+        }}
+      >
+        <Box sx={{ mb: 3 }}>
           <Text
             sx={{
-              fontSize: 3,
+              fontSize: 1,
               fontWeight: 'semibold',
               color: 'fg.default',
               display: 'block',
             }}
           >
-            {avgEngaged}
+            IDE weekly active users
           </Text>
           <Text
             sx={{
@@ -76,67 +143,52 @@ export function ActiveUsersChart({ data }: ActiveUsersChartProps) {
               display: 'block',
             }}
           >
-            avg per day
+            Unique users who used Copilot on a given week, either via chat or code completions
           </Text>
         </Box>
-      </Box>
-      <Box sx={{ height: 280 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData}>
-            <defs>
-              <linearGradient id="colorCodeCompletion" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0969da" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#0969da" stopOpacity={0.05}/>
-              </linearGradient>
-              <linearGradient id="colorChat" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#8250df" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#8250df" stopOpacity={0.05}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#d0d7de" vertical={false} />
-            <XAxis
-              dataKey="name"
-              tick={{ fontSize: 11, fill: '#656d76' }}
-              axisLine={{ stroke: '#d0d7de' }}
-              tickLine={false}
-            />
-            <YAxis
-              tick={{ fontSize: 11, fill: '#656d76' }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#ffffff',
-                border: '1px solid #d0d7de',
-                borderRadius: '6px',
-                fontSize: '12px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-              }}
-            />
-            <Legend
-              wrapperStyle={{ fontSize: '12px', paddingTop: '16px' }}
-              iconType="circle"
-              iconSize={8}
-            />
-            <Area
-              type="monotone"
-              dataKey="Code completion"
-              stackId="1"
-              stroke="#0969da"
-              strokeWidth={2}
-              fill="url(#colorCodeCompletion)"
-            />
-            <Area
-              type="monotone"
-              dataKey="Chat"
-              stackId="1"
-              stroke="#8250df"
-              strokeWidth={2}
-              fill="url(#colorChat)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        <Box sx={{ height: 200 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={weeklyChartData}>
+              <defs>
+                <linearGradient id="colorWeeklyUsers" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#58a6ff" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="#58a6ff" stopOpacity={0.05}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#30363d" vertical={false} />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 10, fill: '#8b949e' }}
+                axisLine={{ stroke: '#30363d' }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: '#8b949e' }}
+                axisLine={false}
+                tickLine={false}
+                label={{ value: 'Users', angle: -90, position: 'insideLeft', fontSize: 10, fill: '#8b949e' }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#161b22',
+                  border: '1px solid #30363d',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  color: '#c9d1d9',
+                }}
+                labelStyle={{ color: '#c9d1d9' }}
+              />
+              <Area
+                type="monotone"
+                dataKey="users"
+                stroke="#58a6ff"
+                strokeWidth={2}
+                fill="url(#colorWeeklyUsers)"
+                name="Weekly active users"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Box>
       </Box>
     </Box>
   );

@@ -1,4 +1,4 @@
--- SQL Server Schema for Copilot Usage Metrics
+-- SQL Server Schema for Insights
 
 -- Main metrics table (daily aggregated data)
 CREATE TABLE [dbo].[CopilotMetrics] (

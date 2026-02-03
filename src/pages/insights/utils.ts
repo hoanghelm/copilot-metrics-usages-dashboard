@@ -350,6 +350,13 @@ export function calculateSummary(
       totalSuggestions: 0,
       totalAcceptances: 0,
       totalChats: 0,
+      ideActiveUsers: 0,
+      agentAdoptionPercentage: 0,
+      agentActiveUsers: 0,
+      mostUsedChatModel: 'Claude Sonnet 4.5',
+      totalLinesChanged: 0,
+      agentContributionPercentage: 0,
+      averageLinesDeletedByAgent: 0,
     };
   }
 
@@ -360,10 +367,27 @@ export function calculateSummary(
   let totalLinesSuggested = 0;
   let totalLinesAccepted = 0;
   let totalChats = 0;
+  let totalAgentAdoption = 0;
+  let totalAgentUsers = 0;
+  let totalLinesChanged = 0;
+  let totalAgentContribution = 0;
+  let totalLinesDeletedByAgent = 0;
 
   metrics.forEach((metric) => {
     totalActiveUsers += metric.total_active_users;
     totalEngagedUsers += metric.total_engaged_users;
+
+    // New metrics from enhanced data
+    if (metric.agent_adoption) {
+      totalAgentAdoption += metric.agent_adoption.percentage;
+      totalAgentUsers += metric.agent_adoption.active_agent_users;
+    }
+
+    if (metric.code_generation) {
+      totalLinesChanged += metric.code_generation.total_lines_changed;
+      totalAgentContribution += metric.code_generation.agent_contribution_percentage;
+      totalLinesDeletedByAgent += metric.code_generation.average_lines_deleted_by_agent;
+    }
 
     if (metric.copilot_ide_code_completions) {
       metric.copilot_ide_code_completions.editors.forEach((editor) => {
@@ -418,6 +442,13 @@ export function calculateSummary(
       ? Math.round((activeSeats / totalSeats) * 100 * 100) / 100
       : 0;
 
+  // Calculate IDE active users (max unique active users in the period)
+  const ideActiveUsers = Math.max(...metrics.map(m => m.total_active_users));
+
+  // Get the most used chat model from the latest metrics
+  const latestMetric = metrics[metrics.length - 1];
+  const mostUsedChatModel = latestMetric?.model_usage?.most_used_model || 'Claude Sonnet 4.5';
+
   return {
     totalActiveUsers: Math.round(totalActiveUsers / metrics.length),
     totalEngagedUsers: Math.round(totalEngagedUsers / metrics.length),
@@ -429,6 +460,13 @@ export function calculateSummary(
     totalSuggestions,
     totalAcceptances,
     totalChats,
+    ideActiveUsers,
+    agentAdoptionPercentage: Math.round(totalAgentAdoption / metrics.length),
+    agentActiveUsers: Math.round(totalAgentUsers / metrics.length),
+    mostUsedChatModel,
+    totalLinesChanged,
+    agentContributionPercentage: Math.round((totalAgentContribution / metrics.length) * 100) / 100,
+    averageLinesDeletedByAgent: Math.round(totalLinesDeletedByAgent / metrics.length),
   };
 }
 

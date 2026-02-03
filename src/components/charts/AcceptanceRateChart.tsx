@@ -1,7 +1,7 @@
 import { Box, Text } from '@primer/react';
 import {
-  AreaChart,
-  Area,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -13,131 +13,119 @@ import { ProcessedMetrics } from '@/pages/insights/types';
 
 interface AcceptanceRateChartProps {
   data: ProcessedMetrics[];
+  title?: string;
+  subtitle?: string;
+  showLines?: boolean;
 }
 
-export function AcceptanceRateChart({ data }: AcceptanceRateChartProps) {
+export function AcceptanceRateChart({
+  data,
+  title = 'Code completions acceptance rate',
+  subtitle = 'Percentage of shown inline completions that were either fully or partially accepted',
+  showLines = false,
+}: AcceptanceRateChartProps) {
   const chartData = data.map((item) => ({
     name: item.displayDate,
-    'Suggestions': item.acceptanceRate,
-    'Lines of code': item.linesAcceptanceRate,
+    accepted: showLines ? item.totalCodeAcceptances : item.acceptanceRate,
+    suggested: showLines ? item.totalCodeSuggestions : undefined,
   }));
-
-  // Calculate average acceptance rate
-  const avgAcceptanceRate = data.length > 0
-    ? Math.round(data.reduce((sum, item) => sum + item.acceptanceRate, 0) / data.length * 10) / 10
-    : 0;
 
   return (
     <Box
       sx={{
         p: 4,
-        bg: 'canvas.default',
+        bg: 'canvas.subtle',
         borderRadius: 2,
         border: '1px solid',
         borderColor: 'border.default',
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-        <Box>
-          <Text
-            sx={{
-              fontSize: 1,
-              fontWeight: 'semibold',
-              color: 'fg.default',
-              display: 'block',
-            }}
-          >
-            Acceptance rate
-          </Text>
-          <Text
-            sx={{
-              fontSize: 0,
-              color: 'fg.muted',
-              display: 'block',
-            }}
-          >
-            Percentage of suggestions accepted
-          </Text>
-        </Box>
-        <Box sx={{ textAlign: 'right' }}>
-          <Text
-            sx={{
-              fontSize: 3,
-              fontWeight: 'semibold',
-              color: 'fg.default',
-              display: 'block',
-            }}
-          >
-            {avgAcceptanceRate}%
-          </Text>
-          <Text
-            sx={{
-              fontSize: 0,
-              color: 'fg.muted',
-              display: 'block',
-            }}
-          >
-            avg acceptance rate
-          </Text>
-        </Box>
+      <Box sx={{ mb: 3 }}>
+        <Text
+          sx={{
+            fontSize: 1,
+            fontWeight: 'semibold',
+            color: 'fg.default',
+            display: 'block',
+          }}
+        >
+          {title}
+        </Text>
+        <Text
+          sx={{
+            fontSize: 0,
+            color: 'fg.muted',
+            display: 'block',
+          }}
+        >
+          {subtitle}
+        </Text>
       </Box>
-      <Box sx={{ height: 280 }}>
+      <Box sx={{ height: 250 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData}>
-            <defs>
-              <linearGradient id="acceptanceRate" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0969da" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#0969da" stopOpacity={0.05} />
-              </linearGradient>
-              <linearGradient id="linesRate" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#8250df" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#8250df" stopOpacity={0.05} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#d0d7de" vertical={false} />
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#30363d" vertical={false} />
             <XAxis
               dataKey="name"
-              tick={{ fontSize: 11, fill: '#656d76' }}
-              axisLine={{ stroke: '#d0d7de' }}
+              tick={{ fontSize: 10, fill: '#8b949e' }}
+              axisLine={{ stroke: '#30363d' }}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: '#656d76' }}
+              tick={{ fontSize: 10, fill: '#8b949e' }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(value) => `${value}%`}
-              domain={[0, 100]}
+              tickFormatter={(value) => showLines ? value.toLocaleString() : `${value}%`}
+              label={{
+                value: showLines ? 'Completions' : '%',
+                angle: -90,
+                position: 'insideLeft',
+                fontSize: 10,
+                fill: '#8b949e',
+              }}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#ffffff',
-                border: '1px solid #d0d7de',
+                backgroundColor: '#161b22',
+                border: '1px solid #30363d',
                 borderRadius: '6px',
                 fontSize: '12px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+                color: '#c9d1d9',
               }}
-              formatter={(value: number) => [`${value.toFixed(1)}%`, '']}
+              labelStyle={{ color: '#c9d1d9' }}
+              formatter={(value: number, name: string) => [
+                showLines ? value.toLocaleString() : `${value.toFixed(1)}%`,
+                name === 'accepted' ? (showLines ? 'Accepted completions' : 'Acceptance rate') : 'Suggested completions',
+              ]}
             />
-            <Legend
-              wrapperStyle={{ fontSize: '12px', paddingTop: '16px' }}
-              iconType="circle"
-              iconSize={8}
-            />
-            <Area
+            {showLines && (
+              <Legend
+                wrapperStyle={{ fontSize: '12px', paddingTop: '16px' }}
+                iconType="line"
+                iconSize={12}
+                formatter={(value) => value === 'accepted' ? 'Accepted completions' : 'Suggested completions'}
+              />
+            )}
+            <Line
               type="monotone"
-              dataKey="Suggestions"
-              stroke="#0969da"
+              dataKey="accepted"
+              stroke={showLines ? '#8957e5' : '#3fb950'}
               strokeWidth={2}
-              fill="url(#acceptanceRate)"
+              dot={false}
+              name="accepted"
             />
-            <Area
-              type="monotone"
-              dataKey="Lines of code"
-              stroke="#8250df"
-              strokeWidth={2}
-              fill="url(#linesRate)"
-            />
-          </AreaChart>
+            {showLines && (
+              <Line
+                type="monotone"
+                dataKey="suggested"
+                stroke="#8957e5"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                dot={false}
+                name="suggested"
+              />
+            )}
+          </LineChart>
         </ResponsiveContainer>
       </Box>
     </Box>

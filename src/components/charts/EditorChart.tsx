@@ -1,19 +1,41 @@
 import { Box, Text } from '@primer/react';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  Tooltip,
+} from 'recharts';
 import { EditorBreakdown } from '@/pages/insights/types';
-import { getChartColor } from '@/pages/insights/utils';
 
 interface EditorChartProps {
   data: EditorBreakdown[];
 }
 
+// Colors for model usage (blue tones matching screenshots)
+const MODEL_COLORS = [
+  '#58a6ff',  // Light blue
+  '#388bfd',  // Medium blue
+  '#1f6feb',  // Primary blue
+  '#0d419d',  // Dark blue
+  '#0a3069',  // Darker blue
+];
+
 export function EditorChart({ data }: EditorChartProps) {
-  const maxValue = Math.max(...data.map(e => e.totalEngagedUsers), 1);
+  const total = data.reduce((sum, e) => sum + e.totalEngagedUsers, 0);
+
+  const chartData = data.map((editor) => ({
+    name: editor.name,
+    value: editor.totalEngagedUsers,
+    percentage: total > 0 ? ((editor.totalEngagedUsers / total) * 100).toFixed(1) : '0',
+  }));
 
   return (
     <Box
       sx={{
         p: 4,
-        bg: 'canvas.default',
+        bg: 'canvas.subtle',
         borderRadius: 2,
         border: '1px solid',
         borderColor: 'border.default',
@@ -29,7 +51,7 @@ export function EditorChart({ data }: EditorChartProps) {
             display: 'block',
           }}
         >
-          Editors
+          Chat model usage
         </Text>
         <Text
           sx={{
@@ -38,63 +60,63 @@ export function EditorChart({ data }: EditorChartProps) {
             display: 'block',
           }}
         >
-          IDE usage distribution
+          Distribution of models used across all chat modes
         </Text>
       </Box>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {data.map((editor, index) => (
-          <Box key={editor.name}>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 1,
-              }}
+      <Box sx={{ height: 280 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={100}
+              paddingAngle={2}
+              dataKey="value"
+              nameKey="name"
+              label={({ name, percentage }) => `${name}\n${percentage}%`}
+              labelLine={{ stroke: '#8b949e', strokeWidth: 1 }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box
-                  sx={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: '50%',
-                    bg: getChartColor(index),
-                    flexShrink: 0,
-                  }}
+              {chartData.map((_, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={MODEL_COLORS[index % MODEL_COLORS.length]}
                 />
-                <Text sx={{ fontSize: 1, color: 'fg.default', fontWeight: 500 }}>
-                  {editor.name}
-                </Text>
-              </Box>
-              <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-                <Text sx={{ fontSize: 0, color: 'fg.muted', minWidth: 50, textAlign: 'right' }}>
-                  {editor.totalEngagedUsers.toLocaleString()}
-                </Text>
-                <Text sx={{ fontSize: 0, color: 'fg.muted', minWidth: 45, textAlign: 'right' }}>
-                  {editor.percentage}%
-                </Text>
-              </Box>
-            </Box>
-            <Box
-              sx={{
-                height: 6,
-                bg: 'neutral.muted',
-                borderRadius: 1,
-                overflow: 'hidden',
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#161b22',
+                border: '1px solid #30363d',
+                borderRadius: '6px',
+                fontSize: '12px',
+                color: '#c9d1d9',
               }}
-            >
-              <Box
-                sx={{
-                  height: '100%',
-                  width: `${(editor.totalEngagedUsers / maxValue) * 100}%`,
-                  bg: getChartColor(index),
-                  borderRadius: 1,
-                  transition: 'width 0.3s ease',
-                }}
-              />
-            </Box>
-          </Box>
-        ))}
+              formatter={(value: number, name: string) => [
+                `${value.toLocaleString()} (${chartData.find(d => d.name === name)?.percentage}%)`,
+                name,
+              ]}
+            />
+            <Legend
+              verticalAlign="middle"
+              align="left"
+              layout="vertical"
+              wrapperStyle={{
+                fontSize: '12px',
+                paddingLeft: '10px',
+              }}
+              formatter={(value) => {
+                const item = chartData.find(d => d.name === value);
+                return (
+                  <span style={{ color: '#c9d1d9' }}>
+                    {value} <span style={{ color: '#8b949e' }}>{item?.percentage}%</span>
+                  </span>
+                );
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
       </Box>
     </Box>
   );

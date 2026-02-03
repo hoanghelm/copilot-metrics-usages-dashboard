@@ -15,7 +15,7 @@ export function Header() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <CopilotIcon size={24} />
           <Text sx={{ fontWeight: 'semibold', fontSize: 2 }}>
-            Copilot Usage Metrics
+            Insights
           </Text>
         </Box>
       </PrimerHeader.Item>

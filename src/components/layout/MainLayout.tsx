@@ -7,12 +7,15 @@ export function MainLayout() {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        height: '100vh',
         bg: 'canvas.default',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
       <Header />
-      <Box sx={{ display: 'flex' }}>
+      <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <Sidebar />
         <Box
           as="main"
@@ -20,6 +23,8 @@ export function MainLayout() {
             flex: 1,
             minWidth: 0,
             bg: 'canvas.subtle',
+            overflow: 'auto',
+            maxHeight: 'calc(100vh - 64px)',
           }}
         >
           <Outlet />

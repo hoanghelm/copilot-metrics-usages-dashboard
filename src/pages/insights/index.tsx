@@ -29,6 +29,7 @@ export function InsightsPage() {
     setCustomDateRange,
     toggleLanguage,
     toggleEditor,
+    metricsQuery,
     processedMetrics,
     languageBreakdown,
     editorBreakdown,
@@ -116,7 +117,7 @@ export function InsightsPage() {
             <LinesChart data={processedMetrics} />
           </Box>
 
-          <ChatChart data={processedMetrics} />
+          {metricsQuery.data && <ChatChart data={metricsQuery.data} />}
 
           <Box
             sx={{

@@ -1,4 +1,4 @@
-import { CopilotMetrics, CopilotSeats } from '@/types/copilot';
+import { CopilotMetrics, CopilotSeats, AIModel } from '@/types/copilot';
 
 export type TimeRange =
   | '7_days'
@@ -73,6 +73,92 @@ export interface InsightsSummary {
   totalSuggestions: number;
   totalAcceptances: number;
   totalChats: number;
+  // Copilot Usage page metrics
+  ideActiveUsers: number;
+  agentAdoptionPercentage: number;
+  agentActiveUsers: number;
+  mostUsedChatModel: AIModel;
+  // Code Generation page metrics
+  totalLinesChanged: number;
+  agentContributionPercentage: number;
+  averageLinesDeletedByAgent: number;
+}
+
+// Chat mode data for charts
+export interface ChatModeData {
+  date: string;
+  displayDate: string;
+  Edit: number;
+  Ask: number;
+  Agent: number;
+  Custom: number;
+  Inline: number;
+}
+
+// Model usage data for charts
+export interface ModelUsageData {
+  date: string;
+  displayDate: string;
+  'Claude Sonnet 4.5': number;
+  'GPT-4.1': number;
+  'Claude Haiku 4.5': number;
+  'GPT-5.2': number;
+  'Gemini 3.0 Pro': number;
+  'Other models': number;
+}
+
+// Language usage data for charts
+export interface LanguageUsageData {
+  date: string;
+  displayDate: string;
+  csharp: number;
+  TSX: number;
+  Java: number;
+  Python: number;
+  'Other languages': number;
+}
+
+// Code generation data for charts
+export interface CodeGenerationData {
+  date: string;
+  displayDate: string;
+  linesAdded: number;
+  linesDeleted: number;
+}
+
+// Model distribution for donut chart
+export interface ModelDistribution {
+  name: AIModel;
+  value: number;
+  percentage: number;
+}
+
+// Language distribution for donut chart
+export interface LanguageDistribution {
+  name: string;
+  value: number;
+  percentage: number;
+}
+
+// Code changes by mode
+export interface CodeChangesByMode {
+  mode: string;
+  suggested: number;
+  added: number;
+}
+
+// Code changes by model
+export interface CodeChangesByModel {
+  model: AIModel;
+  suggested: number;
+  added: number;
+}
+
+// Agent code changes by model
+export interface AgentCodeChangesByModel {
+  model: AIModel;
+  added: number;
+  deleted: number;
 }
 
 export interface InsightsData {
